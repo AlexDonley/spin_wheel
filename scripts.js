@@ -16,7 +16,7 @@ let prevIndex = 0
 let nowIndex = 0
 
 const teamArr = ['red', 'blue']
-let teamPick = 0
+let teamPick = -1
 let spinMode = "SHUFFLE"
 
 const story3A = [
@@ -152,6 +152,11 @@ function nextTeam() {
     }
 
     punchButton.innerText = teamArr[teamPick]
+    if (Array.from(punchButton.classList).length > 1) {
+        punchButton.classList.remove(Array.from(punchButton.classList)[1])
+    }
+    punchButton.classList.add(teamArr[teamPick])
+    
 }
 
 // shuffle array function
@@ -176,8 +181,11 @@ function shuffle(arr){
 window.addEventListener('keydown', (e) =>{
     switch(e.key){
         case 'ArrowDown':
+            nextTeam()
             break
-        
+        case 'ArrowUp':
+            assignSliceToTeam()
+            break
         case 'Enter':
             break
     }
