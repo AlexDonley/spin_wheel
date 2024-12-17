@@ -15,7 +15,7 @@ body {
 
 .two-columns {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1fr;
     justify-content: center;
     align-items: center
 }
@@ -23,7 +23,9 @@ body {
 .two-rows {
     display: grid;
     min-height: 100vh;
-    grid-template-rows: 1fr 1fr
+    grid-template-rows: 1fr 1fr;
+    justify-content: center;
+    align-items: center
 }
 
 .sentence-display {
@@ -45,8 +47,8 @@ input{
 
 .container {
     position: relative;
-    width: 70vh;
-    height: 70vh;
+    width: min(70vh, 50vw);
+    height: min(70vh, 50vw);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -83,7 +85,7 @@ input{
     0 0 0 15px #fff,
     0 0 0 18px #111;
     transform: rotate(45deg);
-    transition: transform 1s ease-in-out;
+    transition: transform 1s ease-out;
 }
 
 .slice{
@@ -95,15 +97,39 @@ input{
     justify-content: center;
     align-items: center;
     user-select: none;
+    transition: background 0.5s
 }
 span{
     position: relative;
     transform: rotate(-45deg);
     font-weight: 700;
-    color: #fff;
     text-shadow: 1px 1px 2px rgb(0, 0, 0);
+    transition: color 0.5s
 }
 
 .slice-text {
     transform: rotate(90deg)
+}
+
+.highlight {
+    background: white;
+    color: black
+}
+
+.center-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+button {
+    font-size: 8vh;
+    padding: 2vh;
+    color: white
+}
+button.red {
+    background: red
+}
+button.blue {
+    background: blue
 }
