@@ -122,9 +122,11 @@ span{
     align-items: center;
 }
 
-button {
+.punch-button {
+    position: fixed;
+    top: 0;
     font-size: 8vh;
-    padding: 2vh;
+    padding: 20px;
     color: white
 }
 button.red {
