@@ -2,14 +2,22 @@ let bigWheel = document.getElementById('bigWheel');
 let sentDisplay = document.getElementById('sentDisplay');
 let spinBtn = document.querySelector('.spinBtn');
 let wheelSpokes = document.querySelector('.wheelSpokes')
-let spokesCount
-let angle
-let countup
-let group = []
-let picker
+const punchButton = document.getElementById('punchButton')
+
 let rotateValue = 0
 let slicesNum = 0
 let oneSlice = 0
+let randHue = 0
+let thisSlice = null
+
+let indexQueue = []
+let shuffledQueue = []
+let prevIndex = 0
+let nowIndex = 0
+
+const teamArr = ['red', 'blue']
+let teamPick = 0
+let spinMode = "SHUFFLE"
 
 const story3A = [
     "Look at the store. It's clean!",
@@ -34,14 +42,16 @@ const story4A = [
     "Wow! That ball is cool! ",
     "Ball? What ball?"
 ]
+
 const combinedStory = story3B.concat(story4A)
-console.log(combinedStory)
 
 function populateWheel(arr) {
     slicesNum = arr.length
     
     if (slicesNum < 4) {
+        
         window.alert("Wheel must have at least 4 options")
+
     } else {
         bigWheel.innerHTML = ''
         randHue = Math.ceil(Math.random()*360)
@@ -52,6 +62,7 @@ function populateWheel(arr) {
             newDiv = document.createElement('span')
             newDiv.setAttribute("style", "--i:" + (i + 1))
             newDiv.classList.add('slice')
+            newDiv.id = i + "_slice"
             newDiv.style.transform = "rotate(calc(" + oneSlice +"deg * var(--i)))"
             newDiv.style.background = "hsl(" + (randHue) + " 100% " + (40 - Math.ceil(Math.random()*20)) + "%)"
 
@@ -60,6 +71,7 @@ function populateWheel(arr) {
             newDiv.style.clipPath = "polygon(" + deduct + "% 0%, 50% 100%, " + (100 - deduct) + "% 0%)"
 
             newSpan = document.createElement('span')
+            newSpan.style.color = 'white'
             newSpan.innerText = arr[i]
             newSpan.classList.add("slice-text")
 
@@ -69,61 +81,104 @@ function populateWheel(arr) {
     }
 }
 
+function populateIndexQueue(arr) {
+    indexQueue = []
+    
+    for (let i = 0; i < arr.length; i++) {
+        indexQueue.push(i)
+    }
+
+    shuffledQueue = shuffle(indexQueue)
+}
+
 populateWheel(combinedStory)
+populateIndexQueue(combinedStory)
 
 function spinTheWheel() {
-    rotateValue += Math.ceil(Math.random()*slicesNum) * oneSlice + 360;
-    //rotateValue += oneSlice
+    if (thisSlice) {
+        thisSlice.style.background = "hsl(" + (randHue) + " 100% " + (40 - Math.ceil(Math.random()*20)) + "%)"
+        thisSlice.children[0].style.color = 'white'
+    }
+    
+    if (spinMode == "RANDOM") {
+        rotateValue += Math.ceil(Math.random()*slicesNum) * oneSlice + 360;
+    } else if (spinMode == "SHUFFLE") {
+        if (shuffledQueue.length > 0) {
+            prevIndex = nowIndex
+
+            nowIndex = shuffledQueue[0]
+            shuffledQueue.shift()
+
+            console.log(prevIndex, nowIndex)
+            
+            rotateValue += (nowIndex - prevIndex) * oneSlice + 360;
+        }
+    } else if (spinMode == "INCREMENT") {
+        rotateValue += oneSlice + 360;
+    }
+    
     bigWheel.style.transform = "rotate(" + rotateValue + "deg)"
 
     pickedIndex = (slicesNum - (((rotateValue + 120) / oneSlice) % slicesNum)) % slicesNum
     
-    console.log(rotateValue, (rotateValue) / oneSlice, pickedIndex)
     setTimeout(() => {
+        
         sentDisplay.innerText = combinedStory[pickedIndex]
+        thisSlice = document.getElementById(pickedIndex + "_slice")
+        //thisSlice.classList.add('highlight')
+        thisSlice.style.background = 'white'
+        thisSlice.children[0].style.color = 'black'
+
     }, 1000)
+    
+    nextTeam()
+
     return pickedIndex
 }
+
+
+function assignSliceToTeam() {
+    thisSlice.style.background = teamArr[teamPick]
+    thisSlice.children[0].style.color = 'white'
+
+    thisSlice = null
+}
+
+function nextTeam() {
+    if (teamPick < teamArr.length - 1) {
+        teamPick++
+    } else {
+        teamPick = 0
+    }
+
+    punchButton.innerText = teamArr[teamPick]
+}
+
+// shuffle array function
+
+function shuffle(arr){
+    let unshuffled = arr;
+    let shuffled = [];
+  
+    unshuffled.forEach(word =>{
+        randomPos = Math.round(Math.random() * shuffled.length);
+  
+        shuffled.splice(randomPos, 0, word);
+    })
+    
+    // console.log(shuffled);
+    return shuffled;
+}
+
+
+// controls for USB remote
 
 window.addEventListener('keydown', (e) =>{
     switch(e.key){
         case 'ArrowDown':
-            groupCollapse();
+            break
         
         case 'Enter':
-            spokesCount = bigWheel.children.length
-            angle = 360 / spokesCount
-
-            console.log("If the count is " + spokesCount + ", then each spoke will be " + angle + " degrees.")
-            formGroup(spokesCount);
+            break
     }
 })
-
-function formGroup(n){
-    countup = 0;
-    group = [];
-    while(countup < n){
-        countup++
-        tempArray = [countup]
-        group.push(tempArray);
-    }
-    console.log(group)
-}
-
-function groupCollapse(){
-    if(group.length > 1){
-        picker = Math.floor((Math.random() * group.length), 1);
-        console.log(picker);
-        console.log((group[picker])[0])
-
-        if(picker>1){
-            group[picker-1].push((group[picker])[0]);
-            group.splice(picker, picker);
-            console.log(group)
-        } else {
-            group[picker+1].push((group[picker])[0]);
-            group.splice(picker, picker);
-            console.log(group)
-        }
-    }
-}
