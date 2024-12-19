@@ -11,6 +11,11 @@ body {
     align-items: center;
     min-height: 100vh;
     background-color: rgb(0, 0, 61);
+    overflow: hidden;
+}
+
+.full-width {
+    width: 100%
 }
 
 .two-columns {
@@ -55,7 +60,7 @@ input{
 }
 
 .spinBtn {
-    position: absolute;
+    position: relative;
     width: 60px;
     height: 60px;
     background: #fff;
@@ -70,6 +75,10 @@ input{
     letter-spacing: 0.1em;
     cursor: pointer;
     user-select: none;
+    transition: transform 1s
+}
+.spinBtn.big {
+    transform: translateX(-400%)
 }
 
 .wheel{
@@ -85,7 +94,13 @@ input{
     0 0 0 15px #fff,
     0 0 0 18px #111;
     transform: rotate(45deg);
-    transition: transform 1s ease-out;
+    transition: transform 1s ease-out, width 1s, height 1s, top 1s, left 1s;
+}
+.wheel.big {
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: 10%;
 }
 
 .slice{
