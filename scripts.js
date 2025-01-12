@@ -177,6 +177,7 @@ function shuffle(arr){
 
 
 // controls for USB remote
+// remote includes up, down, b, and enter
 
 window.addEventListener('keydown', (e) =>{
     switch(e.key){
@@ -190,3 +191,25 @@ window.addEventListener('keydown', (e) =>{
             break
     }
 })
+
+
+// Speech recognition functionality
+// Receive listener audio
+// Await final utterance
+// Compare utterance to target this way:
+
+// Split target and utterance into arrays of lowercase words
+// Process both arrays into dictionaries that correspond each word to its number of apperances
+// e.g. "the" : 26, "field": 1, "big" : 4
+// (tokenization with count)
+// for each entry in the target dictionary, subtract the count of the same word from the utterance dictionary
+// and store the result in a results array
+// This tracks whether the utterance contains all of the target words, but does not account for word order
+// Every included word is a "yellow"
+
+// Now loop through each "yellow" word in the target array sequentially, 
+// comparing every one to the corresponding and greater indeces of words in the utterance array.
+// Something here about correct answers pushing the search index further
+// it makes sense in my head, let's see if I can code it later.
+// each yellow that has a correspondingly indexed word in the other array is a "green"
+// yellows count as half completion and greens count as full completion
