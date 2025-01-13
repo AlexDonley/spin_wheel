@@ -9,11 +9,11 @@
 </head>
 <body>
     <button class="punch-button" id="punchButton" onclick="assignSliceToTeam()">red</button>
+    <button class="speech-button" onclick="recognition.start()">Speech</button>
     <div class="two-columns full-width">
         <div class="two-rows">
-            <div class="sentence-display" id="sentDisplay"></div>
-            <div class="center-content">
-            </div>
+            <div class="speech-display words-column" id="speechDisplay"></div>
+            <div class="target-display words-column" id="targDisplay"></div>
         </div>
         <div class="container">
             <div class="top">

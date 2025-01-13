@@ -28,15 +28,31 @@ body {
 .two-rows {
     display: grid;
     min-height: 100vh;
-    grid-template-rows: 1fr 1fr;
-    justify-content: center;
-    align-items: center
+    grid-template-columns: 1fr 1fr;
 }
 
-.sentence-display {
+.words-column {
     color: white;
-    width: 30vw;
-    font-size: 8vh
+    height: 100%;
+    font-size: 5vh;
+    white-space: pre;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.one-word {
+    border-radius: 5px;
+    padding: 0 10px;
+    transition: color 0.3s, background 0.3s;
+}
+
+.speech-button {
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 .top{
@@ -114,7 +130,7 @@ input{
     user-select: none;
     transition: background 0.5s
 }
-span{
+.slice-text{
     position: relative;
     transform: rotate(-45deg);
     font-weight: 700;
@@ -131,12 +147,6 @@ span{
     color: black
 }
 
-.center-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 .punch-button {
     position: fixed;
     top: 0;
@@ -149,4 +159,13 @@ button.red {
 }
 button.blue {
     background: blue
+}
+
+.right-word {
+    background: yellow;
+    color: black;
+}
+.right-place {
+    background: limegreen;
+    color: black;
 }
