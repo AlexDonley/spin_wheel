@@ -3,13 +3,17 @@ const targDisplay       = document.getElementById('targDisplay')
 const speechDisplay     = document.getElementById('speechDisplay')
 const spinBtn           = document.querySelector('.spinBtn')
 const wheelSpokes       = document.querySelector('.wheelSpokes')
-const punchButton       = document.getElementById('punchButton')
-const bigWheel          = document.getElementById('bigWheel')
-const targDisplay       = document.getElementById('targDisplay')
-const speechDisplay     = document.getElementById('speechDisplay')
-const spinBtn           = document.querySelector('.spinBtn')
-const wheelSpokes       = document.querySelector('.wheelSpokes')
-const punchButton       = document.getElementById('punchButton')
+const allTeams          = document.querySelector('.all-teams')
+const percentScore      = document.getElementById('percentScore')
+const rawScore          = document.getElementById('rawScore')
+
+let percent = 0
+let raw = 0
+
+const teamColors = ["red", "blue", "yellow", "green", "purple", "orange"]
+let teamScores = [0]
+let teamPick = 0
+let spinMode = "SHUFFLE"
 
 let rotateValue = 0
 let slicesNum = 0
@@ -21,15 +25,6 @@ let indexQueue = []
 let shuffledQueue = []
 let prevIndex = 0
 let nowIndex = 0
-
-const teamArr = ['red', 'blue']
-let teamPick = -1
-let spinMode = "SHUFFLE"
-
-let listenBool = true
-
-let targetArr = []
-let utterArr = []
 
 let listenBool = true
 
@@ -45,7 +40,6 @@ const story3A = [
 ]
 const story3B = [
     "Good morning. How's the weather?",
-    "It's cloudy and windy.",
     "It's cloudy and windy.",
     "Oh! There's a robot on the table. Wow! It can walk!",
     "Huh? Excuse me?",
@@ -154,19 +148,6 @@ function spinTheWheel() {
             targDisplay.append(wordSpan)
         })
         
-        targDisplay.innerHTML = ''
-
-        targetArr = omitPunctuation(combinedStory[pickedIndex]).toLowerCase().split(" ")
-        console.log(targetArr)
-        targDisplayArr = combinedStory[pickedIndex].split(" ")
-        targDisplayArr.forEach(word => {
-            const wordSpan = document.createElement('span')
-            wordSpan.classList.add("one-word")
-            wordSpan.innerText = word
-
-            targDisplay.append(wordSpan)
-        })
-        
         thisSlice = document.getElementById(pickedIndex + "_slice")
         //thisSlice.classList.add('highlight')
         thisSlice.style.background = 'white'
@@ -180,26 +161,75 @@ function spinTheWheel() {
 }
 
 
-function assignSliceToTeam() {
-    thisSlice.style.background = teamArr[teamPick]
-    thisSlice.children[0].style.color = 'white'
+function assignSliceToTeam(n) {
+    if (thisSlice) {
+        thisSlice.style.background = teamColors[n]
+        thisSlice.children[0].style.color = 'white'
+    
+        teamScores[n] += raw
+        allTeams.children[n].innerText = teamScores[n]
 
-    thisSlice = null
+        thisSlice = null
+    }
+}
+
+function addTeam() {
+    let totalTeams = allTeams.children.length
+    
+    if (totalTeams < teamColors.length) {
+        newBtn = document.createElement('button')
+        newBtn.classList += "team-button darken " + teamColors[totalTeams]
+        newBtn.setAttribute("onclick", "assignSliceToTeam(" + totalTeams + ")")
+        
+        if (teamScores[totalTeams] == undefined) {
+            teamScores[totalTeams] = 0
+        }
+        
+        newBtn.innerText = teamScores[totalTeams - 1]
+        newBtn.disabled = true
+
+        allTeams.append(newBtn)
+    }
+}
+
+function subtractTeam(){
+    let totalTeams = allTeams.children.length
+    
+    if (teamPick == totalTeams - 1) {
+        prevTeam()
+    }
+
+    if (totalTeams > 1) {
+        allTeams.children[totalTeams - 1].remove()
+    }
 }
 
 function nextTeam() {
-    if (teamPick < teamArr.length - 1) {
+    allTeams.children[teamPick].disabled = true
+    allTeams.children[teamPick].classList.add("darken")
+    
+    if (teamPick < allTeams.children.length - 1) {
         teamPick++
     } else {
         teamPick = 0
-    }
+    }    
 
-    punchButton.innerText = teamArr[teamPick]
-    if (Array.from(punchButton.classList).length > 1) {
-        punchButton.classList.remove(Array.from(punchButton.classList)[1])
-    }
-    punchButton.classList.add(teamArr[teamPick])
+    allTeams.children[teamPick].disabled = false
+    allTeams.children[teamPick].classList.remove("darken")
+}
+
+function prevTeam() {
+    allTeams.children[teamPick].disabled = true
+    allTeams.children[teamPick].classList.add("darken")
     
+    if (teamPick > 0) {
+        teamPick--
+    } else {
+        teamPick = allTeams.children.length - 1
+    }    
+
+    allTeams.children[teamPick].disabled = false
+    allTeams.children[teamPick].classList.remove("darken")
 }
 
 // shuffle array function
@@ -232,33 +262,9 @@ window.addEventListener('keydown', (e) =>{
             break
         case 'Enter':
             spinTheWheel()
-            spinTheWheel()
             break
     }
 })
-
-
-// Speech recognition functionality
-// Receive listener audio
-// Await final utterance
-// Compare utterance to target this way:
-
-// Split target and utterance into arrays of lowercase words
-// Process both arrays into dictionaries that correspond each word to its number of apperances
-// e.g. "the" : 26, "field": 1, "big" : 4
-// (tokenization with count)
-// for each entry in the target dictionary, subtract the count of the same word from the utterance dictionary
-// and store the result in a results array
-// This tracks whether the utterance contains all of the target words, but does not account for word order
-// Every included word is a "yellow"
-
-// Now loop through each "yellow" word in the target array sequentially, 
-// comparing every one to the corresponding and greater indeces of words in the utterance array.
-// Something here about correct answers pushing the search index further
-// it makes sense in my head, let's see if I can code it later.
-// each yellow that has a correspondingly indexed word in the other array is a "green"
-// yellows count as half completion and greens count as full completion
-
 
 // - - - SPEECH RECOGNITION SNIPPET - - - //
 
@@ -326,6 +332,9 @@ function omitPunctuation(str) {
 
 function compareArrays(targetArrLocal, utterArrLocal, mode) {
     if (mode == "PERCENTAGE") {
+        percent = 0
+        raw = 0
+        
         let targetOccs = {}
         let utterOccs = {}
 
@@ -340,28 +349,21 @@ function compareArrays(targetArrLocal, utterArrLocal, mode) {
         }
         console.log(targetOccs)
 
-        // for (const word of utterArrLocal) {
-        //     if (utterOccs[word]) {
-        //         if (utterOccs[word] < targetOccs[word]){
-        //             utterOccs[word] += 1
-        //             revisedUtter.push(word)
-        //         }
+        for (const word of utterArrLocal) {
+            if (utterOccs[word]) {
+                if (utterOccs[word] < targetOccs[word]){
+                    utterOccs[word] += 1
+                    revisedUtter.push(word)
+                }
                 
-        //     } else {
-        //         if (arrIntersect.includes(word)) {
-        //             utterOccs[word] = 1
-        //             revisedUtter.push(word)
-        //         }
-        //     }
-        // }
-        // console.log(utterOccs, revisedUtter)
-
-        utterArrLocal.forEach(word => {
-            if (arrIntersect.includes(word)) {
-                revisedUtter.push(word)
+            } else {
+                if (arrIntersect.includes(word)) {
+                    utterOccs[word] = 1
+                    revisedUtter.push(word)
+                }
             }
-        })
-        console.log(revisedUtter)
+        }
+        console.log(utterOccs, revisedUtter)
 
         // this code will need some revision but it works for now
 
@@ -382,7 +384,6 @@ function compareArrays(targetArrLocal, utterArrLocal, mode) {
 
                 for (let j = 1; i + j < targetArrLocal.length; j++) {
                     if (targetArrLocal[i + j] == revisedUtter[indexOffset + i + j]) {
-                    //if (revisedUtter.indexOf(targetArrLocal[i+j]) > (indexOffset + i + j)){
                         clusterCount += 1
                         clustersMap[i + j] = "x"
                     }    
@@ -398,7 +399,6 @@ function compareArrays(targetArrLocal, utterArrLocal, mode) {
         }
         
 
-
         // clear visual entirely
             
         Array.from(targDisplay.children).forEach(element => {
@@ -410,9 +410,10 @@ function compareArrays(targetArrLocal, utterArrLocal, mode) {
 
         let maxCluster = Math.max(...clustersMap)
 
-        if (revisedUtter.length > 0 && !(maxCluster == null)) {
+        if (!(maxCluster == null)) {
             
             let minCluster = Math.min(...clustersMap)
+            console.log(maxCluster, minCluster)
 
             if (maxCluster < clustersMap.length && minCluster == maxCluster) {
                 Array.from(targDisplay.children).forEach(element => {
@@ -421,39 +422,43 @@ function compareArrays(targetArrLocal, utterArrLocal, mode) {
             } else {
                 for (let n = 0; n < clustersMap.length; n++) {
                     if (clustersMap[n] > 0) {
-                        targDisplay.children[n].classList.add("right-word")
                         if (clustersMap[n] == maxCluster) {
-                            targDisplay.children[n].classList.add("right-place")
+                            targDisplay.children[n].classList.add("full-point")
+                            raw += 1.0
+                        } else {
+                            targDisplay.children[n].classList.add("half-point")
+                            raw += 0.5
                         }
                     }
                 }
             }
         }
 
-
-        // //update visual
-        // arrIntersect.forEach(word => {
-        //     findIndex = targetArrLocal.indexOf(word)
-        //     targDisplay.children[findIndex].classList.add('right-word')
-        // })
+        percent = Math.round(100 * raw / targetArrLocal.length, 1)
+        updateScores(percent, raw)
 
 
         return arrIntersect
     }
 }
 
-function secondSmallestElement(arr) {
-    let smallest = Infinity;
-    let secondSmallest = Infinity;
-    
-    for (let i = 0; i < arr.length; i++) {
-        if (arr[i] < smallest) {
-            secondSmallest = smallest;
-            smallest = arr[i];
-        } else if (arr[i] < secondSmallest && arr[i] !== smallest) {
-            secondSmallest = arr[i];
-        }
-    }
-    
-    return secondSmallest;
+function updateScores(perc, points) {
+    percentScore.innerText = perc
+    rawScore.innerText = points
 }
+
+// function secondSmallestElement(arr) {
+//     let smallest = Infinity;
+//     let secondSmallest = Infinity;
+    
+//     for (let i = 0; i < arr.length; i++) {
+//         if (arr[i] < smallest) {
+//             secondSmallest = smallest;
+//             smallest = arr[i];
+//         } else if (arr[i] < secondSmallest && arr[i] !== smallest) {
+//             secondSmallest = arr[i];
+//         }
+//     }
+    
+//     return secondSmallest;
+// }
