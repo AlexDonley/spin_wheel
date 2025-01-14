@@ -4,6 +4,12 @@ const speechDisplay     = document.getElementById('speechDisplay')
 const spinBtn           = document.querySelector('.spinBtn')
 const wheelSpokes       = document.querySelector('.wheelSpokes')
 const punchButton       = document.getElementById('punchButton')
+const bigWheel          = document.getElementById('bigWheel')
+const targDisplay       = document.getElementById('targDisplay')
+const speechDisplay     = document.getElementById('speechDisplay')
+const spinBtn           = document.querySelector('.spinBtn')
+const wheelSpokes       = document.querySelector('.wheelSpokes')
+const punchButton       = document.getElementById('punchButton')
 
 let rotateValue = 0
 let slicesNum = 0
@@ -25,6 +31,11 @@ let listenBool = true
 let targetArr = []
 let utterArr = []
 
+let listenBool = true
+
+let targetArr = []
+let utterArr = []
+
 const story3A = [
     "Look at the store. It's clean!",
     "Wow! There are new toys on the table. ",
@@ -34,6 +45,7 @@ const story3A = [
 ]
 const story3B = [
     "Good morning. How's the weather?",
+    "It's cloudy and windy.",
     "It's cloudy and windy.",
     "Oh! There's a robot on the table. Wow! It can walk!",
     "Huh? Excuse me?",
@@ -142,6 +154,19 @@ function spinTheWheel() {
             targDisplay.append(wordSpan)
         })
         
+        targDisplay.innerHTML = ''
+
+        targetArr = omitPunctuation(combinedStory[pickedIndex]).toLowerCase().split(" ")
+        console.log(targetArr)
+        targDisplayArr = combinedStory[pickedIndex].split(" ")
+        targDisplayArr.forEach(word => {
+            const wordSpan = document.createElement('span')
+            wordSpan.classList.add("one-word")
+            wordSpan.innerText = word
+
+            targDisplay.append(wordSpan)
+        })
+        
         thisSlice = document.getElementById(pickedIndex + "_slice")
         //thisSlice.classList.add('highlight')
         thisSlice.style.background = 'white'
@@ -206,6 +231,7 @@ window.addEventListener('keydown', (e) =>{
             assignSliceToTeam()
             break
         case 'Enter':
+            spinTheWheel()
             spinTheWheel()
             break
     }
