@@ -1,8 +1,9 @@
-let bigWheel = document.getElementById('bigWheel');
-let sentDisplay = document.getElementById('sentDisplay');
-let spinBtn = document.querySelector('.spinBtn');
-let wheelSpokes = document.querySelector('.wheelSpokes')
-const punchButton = document.getElementById('punchButton')
+const bigWheel          = document.getElementById('bigWheel')
+const targDisplay       = document.getElementById('targDisplay')
+const speechDisplay     = document.getElementById('speechDisplay')
+const spinBtn           = document.querySelector('.spinBtn')
+const wheelSpokes       = document.querySelector('.wheelSpokes')
+const punchButton       = document.getElementById('punchButton')
 
 let rotateValue = 0
 let slicesNum = 0
@@ -19,6 +20,11 @@ const teamArr = ['red', 'blue']
 let teamPick = -1
 let spinMode = "SHUFFLE"
 
+let listenBool = true
+
+let targetArr = []
+let utterArr = []
+
 const story3A = [
     "Look at the store. It's clean!",
     "Wow! There are new toys on the table. ",
@@ -28,7 +34,7 @@ const story3A = [
 ]
 const story3B = [
     "Good morning. How's the weather?",
-    "It's cloudy and windy. ",
+    "It's cloudy and windy.",
     "Oh! There's a robot on the table. Wow! It can walk!",
     "Huh? Excuse me?",
     "Oh... Is there a flower behind the lamp?",
@@ -123,7 +129,19 @@ function spinTheWheel() {
     
     setTimeout(() => {
         
-        sentDisplay.innerText = combinedStory[pickedIndex]
+        targDisplay.innerHTML = ''
+
+        targetArr = omitPunctuation(combinedStory[pickedIndex]).toLowerCase().split(" ")
+        console.log(targetArr)
+        targDisplayArr = combinedStory[pickedIndex].split(" ")
+        targDisplayArr.forEach(word => {
+            const wordSpan = document.createElement('span')
+            wordSpan.classList.add("one-word")
+            wordSpan.innerText = word
+
+            targDisplay.append(wordSpan)
+        })
+        
         thisSlice = document.getElementById(pickedIndex + "_slice")
         //thisSlice.classList.add('highlight')
         thisSlice.style.background = 'white'
@@ -188,6 +206,7 @@ window.addEventListener('keydown', (e) =>{
             assignSliceToTeam()
             break
         case 'Enter':
+            spinTheWheel()
             break
     }
 })
@@ -213,3 +232,198 @@ window.addEventListener('keydown', (e) =>{
 // it makes sense in my head, let's see if I can code it later.
 // each yellow that has a correspondingly indexed word in the other array is a "green"
 // yellows count as half completion and greens count as full completion
+
+
+// - - - SPEECH RECOGNITION SNIPPET - - - //
+
+window.SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const recognition = new SpeechRecognition();
+recognition.interimResults = true;
+
+function setLanguage(str) {
+  targetLang = str
+  recognition.lang = targetLang
+  //langDisplay.innerText = str
+}
+
+setLanguage('en');
+
+recognition.addEventListener("result", (e) => {
+  
+  const text = Array.from(e.results)
+    .map((result) => result[0])
+    .map((result) => result.transcript)
+    .join("")
+
+  // wordlist = processStrToArr(text)
+  utterArr = omitPunctuation(text).toLowerCase().split(' ')
+  wordlist = text.split(' ')
+
+  speechDisplay.innerHTML = ""
+  n = 0
+
+  wordlist.forEach((element) => {
+    const wordSpan = document.createElement('span')
+    wordSpan.setAttribute('id', ('utter' + n))
+    wordSpan.innerText = element + " "
+
+    speechDisplay.appendChild(wordSpan)
+    n++
+  })
+
+  if (e.results[0].isFinal) {
+    console.log(utterArr)
+    compareArrays(targetArr, utterArr, "PERCENTAGE");
+    // compareArrays(utterArr, targetArr, "PERCENTAGE");
+  }
+})
+
+recognition.addEventListener("end", () => {
+  if(listenBool){
+    recognition.start();
+  }
+})
+
+// - - - END OF SPEECH RECOGNITION SNIPPET - - - //
+
+// - - - STRING PARSING SNIPPING - - - //
+
+function omitPunctuation(str) {
+    noPunct = str.replace(/[.。…—,，\/#!$%\^&\*;；{}=_`~()[\]?]/g,"")
+                .replace(/\s+/g, " ");
+    return noPunct;
+}
+
+// - - - END OF STRING PARSING SNIPPING - - - //
+
+function compareArrays(targetArrLocal, utterArrLocal, mode) {
+    if (mode == "PERCENTAGE") {
+        let targetOccs = {}
+        let utterOccs = {}
+
+        let revisedUtter = []
+        let clustersMap = []
+        
+        const arrIntersect = targetArrLocal.filter(value => utterArrLocal.includes(value));
+        console.log(arrIntersect)
+
+        for (const word of targetArrLocal) {
+            targetOccs[word] = targetOccs[word] ? targetOccs[word] + 1 : 1;
+        }
+        console.log(targetOccs)
+
+        for (const word of utterArrLocal) {
+            if (utterOccs[word]) {
+                if (utterOccs[word] < targetOccs[word]){
+                    utterOccs[word] += 1
+                    revisedUtter.push(word)
+                }
+                
+            } else {
+                if (arrIntersect.includes(word)) {
+                    utterOccs[word] = 1
+                    revisedUtter.push(word)
+                }
+            }
+        }
+        console.log(utterOccs, revisedUtter)
+
+        // this code will need some revision but it works for now
+
+        for (const word in targetArrLocal) {
+            clustersMap.push(null)
+        }
+
+        for (let i = 0; i < targetArrLocal.length; i++) {
+            let clusterCount = 1
+
+            if (
+                    revisedUtter.indexOf(targetArrLocal[i]) >= 0
+                    && clustersMap[i] == null
+                ) 
+            {
+                clustersMap[i] = "x"
+                indexOffset = revisedUtter.indexOf(targetArrLocal[i]) - i
+
+                for (
+                    let j = 1;  
+                    i + j < targetArrLocal.length; 
+                    j++
+                ) {
+                    if (targetArrLocal[i + j] == revisedUtter[indexOffset + i + j]) {
+                        clusterCount += 1
+                        clustersMap[i + j] = "x"
+                    }    
+                }
+    
+                for (let k = 0; k < clustersMap.length; k++) {
+                    if (clustersMap[k] == "x") {
+                        clustersMap[k] = clusterCount
+                    }
+                }
+                console.log(clustersMap)
+            }
+        }
+        
+
+
+        // clear visual entirely
+            
+        Array.from(targDisplay.children).forEach(element => {
+            element.classList = "one-word"
+        })
+
+
+        // find maximum in clustersMap
+
+        let maxCluster = Math.max(...clustersMap)
+
+        if (!(maxCluster == null)) {
+            
+            let minCluster = Math.min(...clustersMap)
+
+            if (maxCluster < clustersMap.length && minCluster == maxCluster) {
+                Array.from(targDisplay.children).forEach(element => {
+                    element.classList.add("right-word")
+                })
+            } else {
+                for (let n = 0; n < clustersMap.length; n++) {
+                    if (clustersMap[n] > 0) {
+                        targDisplay.children[n].classList.add("right-word")
+                        if (clustersMap[n] == maxCluster) {
+                            targDisplay.children[n].classList.add("right-place")
+                        }
+                    }
+                }
+            }
+        }
+
+
+        // //update visual
+        // arrIntersect.forEach(word => {
+        //     findIndex = targetArrLocal.indexOf(word)
+        //     targDisplay.children[findIndex].classList.add('right-word')
+        // })
+
+
+        return arrIntersect
+    }
+}
+
+function secondSmallestElement(arr) {
+    let smallest = Infinity;
+    let secondSmallest = Infinity;
+    
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] < smallest) {
+            secondSmallest = smallest;
+            smallest = arr[i];
+        } else if (arr[i] < secondSmallest && arr[i] !== smallest) {
+            secondSmallest = arr[i];
+        }
+    }
+    
+    return secondSmallest;
+}
